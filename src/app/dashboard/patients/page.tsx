@@ -3,65 +3,72 @@
 import { useRouter } from "next/navigation"; // Use Next.js router for navigation
 import React, { useState, useEffect } from "react";
 import toast from "react-hot-toast";
+import { decodeJWT } from "../../lib/utils";
 
-const CaregiversList = () => {
+const PatientsList = () => {
   const router = useRouter();
-  const [caregivers, setCaregivers] = useState([]);
+  const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // State for new caregiver form
-  const [newCaregiverName, setNewCaregiverName] = useState("");
+  // State for new patient form
+  const [newPatientName, setNewPatientName] = useState("");
 
-  // Fetch caregivers from the API
-  const fetchCaregivers = async () => {
+  // Fetch patients from the API
+  const fetchPatients = async () => {
+    const decodedPayload = decodeJWT(localStorage.getItem("jwtToken"));
+
     setLoading(true);
     try {
-      const response = await fetch("/api/caregivers");
+      const response = await fetch(
+        `/api/patients?caregiver_id=${decodedPayload.userId}`
+      );
       const data = await response.json();
 
-      setCaregivers(data || []); // Set caregivers or an empty list
+      setPatients(data || []); // Set patients or an empty list
     } catch (error) {
-      console.error("Error fetching caregivers:", error);
+      console.error("Error fetching patients:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  // Initial load of caregivers when the component mounts
+  // Initial load of patients when the component mounts
   useEffect(() => {
-    fetchCaregivers();
+    fetchPatients();
   }, []);
 
-  // Function to handle adding a new caregiver
-  const handleAddCaregiver = async () => {
-    const newCaregiver = {
-      email: newCaregiverName,
+  // Function to handle adding a new patient
+  const handleAddPatient = async () => {
+    const decodedPayload = decodeJWT(localStorage.getItem("jwtToken"));
+    const newPatient = {
+      name: newPatientName,
+      caregiver_id: decodedPayload.userId,
     };
     try {
-      // Send the new caregiver data to the API
-      const res = await fetch("/api/caregivers", {
+      // Send the new patient data to the API
+      const res = await fetch("/api/patients", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newCaregiver),
+        body: JSON.stringify(newPatient),
       });
 
       if (res.ok) {
-        setNewCaregiverName(""); // Reset form
+        setNewPatientName(""); // Reset form
 
-        toast.success("Added New Caregiver");
-        fetchCaregivers(); // Refresh list
+        toast.success("Added New Patient");
+        fetchPatients(); // Refresh list
       } else {
         toast.error("Please try again");
       }
     } catch (error) {
-      console.error("Error adding caregiver:", error);
+      console.error("Error adding patient:", error);
     }
   };
 
   const handleDelete = async (id) => {
     try {
       // Send delete request to the API with correct headers and method
-      const response = await fetch(`/api/caregivers`, {
+      const response = await fetch(`/api/patients`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id }),
@@ -70,60 +77,60 @@ const CaregiversList = () => {
       // Check if the response was successful
       if (!response.ok) {
         const errorMessage = await response.text();
-        throw new Error(errorMessage || "Failed to delete caregiver");
+        throw new Error(errorMessage || "Failed to delete patient");
       }
 
       // Refresh the list after successful deletion
-      fetchCaregivers();
+      fetchPatients();
     } catch (error) {
-      toast.error(`Error deleting caregiver: ${error.message}`);
+      console.error("Error deleting patient:", error.message);
+      alert(`Error deleting patient: ${error.message}`);
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-100 p-8">
       <div className="max-w-xl mx-auto bg-white rounded-lg shadow-lg p-6">
-        <h1 className="text-2xl font-semibold mb-6">Caregivers</h1>
+        <h1 className="text-2xl font-semibold mb-6">Patients</h1>
 
-        {/* Add Caregiver Form */}
+        {/* Add Patient Form */}
         <div className="mb-6 border max-w-xl p-2 rounded-xl">
-          <h2 className=" font-medium mb-4">Add New Caregiver</h2>
+          <h2 className="font-medium mb-4">Add New Patient</h2>
           <input
-            type="email"
-            placeholder="Caregiver Email"
-            value={newCaregiverName}
-            onChange={(e) => setNewCaregiverName(e.target.value)}
+            type="text"
+            placeholder="Patient Name"
+            value={newPatientName}
+            onChange={(e) => setNewPatientName(e.target.value)}
             className="w-full p-2 border rounded-md mb-4"
           />
 
           <button
-            onClick={handleAddCaregiver}
+            onClick={handleAddPatient}
             className="w-full bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 transition"
           >
-            Add Caregiver
+            Add Patient
           </button>
         </div>
 
-        {/* List of Caregivers */}
+        {/* List of Patients */}
         {loading ? (
-          <p className="text-center text-gray-500">Loading caregivers...</p>
-        ) : caregivers.length === 0 ? (
+          <p className="text-center text-gray-500">Loading patients...</p>
+        ) : patients.length === 0 ? (
           <p className="text-center text-gray-500">
-            No caregivers added till now.
+            No patients added till now.
           </p>
         ) : (
           <ul className="space-y-4">
-            {caregivers.map((caregiver) => (
+            {patients.map((patient) => (
               <li
-                key={caregiver.id}
+                key={patient.id}
                 className="flex justify-between items-center p-4 border rounded-lg shadow-sm"
               >
                 <div>
-                  <h2 className="text-xl font-medium">{caregiver.email}</h2>
-                  <p className="text-sm text-gray-500">{caregiver.role}</p>
+                  <h2 className="text-xl font-medium">{patient.name}</h2>
                 </div>
                 <button
-                  onClick={() => handleDelete(caregiver.id)}
+                  onClick={() => handleDelete(patient.id)}
                   className="text-red-500 hover:text-red-700 transition"
                 >
                   Delete
@@ -145,4 +152,4 @@ const CaregiversList = () => {
   );
 };
 
-export default CaregiversList;
+export default PatientsList;

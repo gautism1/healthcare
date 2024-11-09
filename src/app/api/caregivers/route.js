@@ -58,8 +58,22 @@ export async function DELETE(req) {
 
   const { id } = await req.json(); // Extract email from request body
 
-  const { data, error } = await supabase.from("users").delete().eq("id", id);
+  const { data, error } = await supabase
+    .from("users")
+    .delete()
+    .eq("id", id)
+    .select();
 
+  console.log(">>>", error);
+
+  if (error && error.code === "23503") {
+    return new NextResponse(
+      "Cannot delete caregiver as it has patients added",
+      {
+        status: 400,
+      }
+    );
+  }
   if (error)
     return new NextResponse("Error deleting caregiver", { status: 400 });
 

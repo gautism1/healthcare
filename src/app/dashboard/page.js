@@ -88,16 +88,13 @@ export default function Dashboard() {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  <button className="w-full py-2 px-4 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500">
-                    Add New Patient
-                  </button>
                   <button
                     className="w-full py-2 px-4 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     onClick={() => {
                       router.push("/dashboard/patients");
                     }}
                   >
-                    View Patient Details
+                    Add & View Patient Details
                   </button>
                 </div>
               )}
