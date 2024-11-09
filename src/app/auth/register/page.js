@@ -5,7 +5,7 @@ import { toast } from "react-hot-toast"; // Import toast for notifications
 export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("caregiver");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState(null);
 
   const handleRegister = async (e) => {
@@ -14,19 +14,25 @@ export default function RegisterPage() {
     // Reset error state
     setError(null);
 
+    // Check if passwords match
+    if (password !== confirmPassword) {
+      setError("Passwords do not match!");
+      return;
+    }
+
     // Send registration request to the API
     const res = await fetch("/api/auth/register", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ email, password, role }),
+      body: JSON.stringify({ email, password }),
     });
 
     const data = await res.json();
 
     if (res.ok) {
-      toast.success("Registration successful! , Redirecting to Login Page"); // Show success toast
+      toast.success("Registration successful! Redirecting to Login Page"); // Show success toast
       // Redirect to the login page
       setTimeout(function () {
         window.location.href = "/auth/login";
@@ -86,24 +92,23 @@ export default function RegisterPage() {
           />
         </div>
 
-        {/* Role Select */}
-        <div className="mb-6">
+        {/* Confirm Password Input */}
+        <div className="mb-4">
           <label
-            htmlFor="role"
+            htmlFor="confirm-password"
             className="block text-sm font-semibold text-gray-700"
           >
-            Role
+            Confirm Password
           </label>
-          <select
-            id="role"
+          <input
+            type="password"
+            id="confirm-password"
             className="w-full mt-2 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
+            placeholder="Confirm your password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
             required
-          >
-            <option value="caregiver">Caregiver</option>
-            <option value="admin">Admin</option>
-          </select>
+          />
         </div>
 
         {/* Error Message */}

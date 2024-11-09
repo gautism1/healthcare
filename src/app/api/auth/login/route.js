@@ -13,10 +13,20 @@ export async function POST(req) {
     .eq("email", email)
     .single();
 
+  console.log(">>", user, error);
   if (error) {
-    return new Response(JSON.stringify({ message: "User not found", error }), {
+    return new Response(JSON.stringify({ message: "User not found" }), {
       status: 404,
     });
+  }
+
+  if (user && user.password === null) {
+    return new Response(
+      JSON.stringify({ message: "User not found , Please register" }),
+      {
+        status: 404,
+      }
+    );
   }
 
   // Verify password with bcrypt
@@ -29,7 +39,7 @@ export async function POST(req) {
 
   // Create JWT token
   const token = sign(
-    { userId: user.id, role: user.role },
+    { userId: user.id, role: user.role, userName: user.email },
     process.env.JWT_SECRET,
     {
       expiresIn: "1h",

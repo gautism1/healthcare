@@ -1,80 +1,82 @@
-// app/api/caregivers/route.js
-import { getSession } from "next-auth/react";
-import { supabase } from "../../../lib/supabaseClient";
+import { supabase } from "../../lib/supabaseClient";
 
-export async function GET(req) {
-  const session = await getSession({ req });
+// Import your Supabase client
+import { NextResponse } from "next/server";
+import { validateAdmin } from "./middleware";
 
-  if (!session || session.user.role !== "admin") {
-    return new Response(JSON.stringify({ message: "Not authorized" }), {
-      status: 403,
-    });
-  }
-
-  const { data, error } = await supabase.from("caregivers").select("*");
-
-  if (error) {
-    return new Response(JSON.stringify({ message: error.message }), {
-      status: 500,
-    });
-  }
-
-  return new Response(JSON.stringify(data), { status: 200 });
-}
-
-// app/api/caregivers/route.js (POST method for adding caregivers)
+// Create caregiver route
 export async function POST(req) {
-  const session = await getSession({ req });
+  await validateAdmin(req); // Ensure admin is calling
 
-  if (!session || session.user.role !== "admin") {
-    return new Response(JSON.stringify({ message: "Not authorized" }), {
-      status: 403,
-    });
+  const { email } = await req.json(); // Extract details from request body
+
+  // Check if the user exists
+  let { data: user, error } = await supabase
+    .from("users")
+    .select("*")
+    .eq("email", email)
+    .single();
+
+  if (error && error.code === "PGRST116") {
+    // User does not exist
+    // Create a new user and assign 'caregiver' role
+    const { data, error: createError } = await supabase
+      .from("users")
+      .insert([{ email, role: "caregiver" }])
+      .select();
+
+    if (createError)
+      return new NextResponse("Error creating user", {
+        status: 400,
+        error: createError,
+      });
+
+    user = data[0]; // Assign newly created user
+  } else {
+    // Update the existing user to have a caregiver role
+    const { data, error: updateError } = await supabase
+      .from("users")
+      .update({ role: "caregiver" })
+      .eq("email", email)
+      .select();
+
+    if (updateError)
+      return new NextResponse("Error updating user", { status: 400 });
+
+    user = data[0]; // Updated user
   }
 
-  const { name, email } = await req.json();
+  // Send email (this could be a third-party service or an internal API)
+  // You can use something like NodeMailer or a service like SendGrid
 
-  const { data, error } = await supabase
-    .from("caregivers")
-    .insert([{ name, email }]);
-
-  if (error) {
-    return new Response(JSON.stringify({ message: error.message }), {
-      status: 500,
-    });
-  }
-
-  return new Response(
-    JSON.stringify({ message: "Caregiver added successfully!" }),
-    { status: 200 }
-  );
+  return new NextResponse("Caregiver added or updated", { status: 200 });
 }
 
-// app/api/caregivers/route.js (DELETE method for deleting caregivers)
+// Delete caregiver route
 export async function DELETE(req) {
-  const session = await getSession({ req });
+  await validateAdmin(req); // Ensure admin is calling
 
-  if (!session || session.user.role !== "admin") {
-    return new Response(JSON.stringify({ message: "Not authorized" }), {
-      status: 403,
-    });
-  }
+  const { id } = await req.json(); // Extract email from request body
 
-  const { id } = await req.json();
+  const { data, error } = await supabase.from("users").delete().eq("id", id);
+
+  if (error)
+    return new NextResponse("Error deleting caregiver", { status: 400 });
+
+  return new NextResponse("Caregiver deleted", { status: 200 });
+}
+
+// Fetch all caregivers route
+export async function GET(req) {
+  await validateAdmin(req); // Ensure admin is calling
 
   const { data, error } = await supabase
-    .from("caregivers")
-    .delete()
-    .eq("id", id);
+    .from("users")
+    .select("*")
+    .eq("role", "caregiver");
 
-  if (error) {
-    return new Response(JSON.stringify({ message: error.message }), {
-      status: 500,
-    });
-  }
+  if (error)
+    return new NextResponse("Error fetching caregivers", { status: 400 });
 
-  return new Response(
-    JSON.stringify({ message: "Caregiver deleted successfully!" }),
-    { status: 200 }
-  );
+  return new NextResponse(JSON.stringify(data), { status: 200 });
 }

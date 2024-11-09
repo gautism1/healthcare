@@ -6,7 +6,7 @@ export async function POST(req) {
   const { email, password, role } = await req.json();
 
   // Validate input
-  if (!email || !password || !role) {
+  if (!email || !password) {
     return new Response(JSON.stringify({ message: "Missing fields" }), {
       status: 400,
     });
