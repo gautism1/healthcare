@@ -12,12 +12,12 @@ const RecordAudio = () => {
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const timerRef = useRef(null);
+  const stopTimeoutRef = useRef(null); // Timeout to stop recording after 20 seconds
 
   const { patientId } = useParams();
   const searchParams = useSearchParams();
   const patientName = searchParams.get("name");
   const router = useRouter();
-  console.log(">>>", patientName);
 
   if (!patientId) {
     router.push("/dashboard");
@@ -28,13 +28,36 @@ const RecordAudio = () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaRecorderRef.current = new MediaRecorder(stream);
+
+      // Listen to data being available for recording
       mediaRecorderRef.current.ondataavailable = (event) => {
-        audioChunksRef.current.push(event.data);
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
       };
+
+      mediaRecorderRef.current.onstop = () => {
+        // Create a Blob from the collected audio chunks and ensure it's valid
+        const blob = new Blob(audioChunksRef.current, { type: "audio/wav" });
+        audioChunksRef.current = []; // Clear previous recording data
+        if (blob.size > 0) {
+          setAudioBlob(blob);
+          const url = URL.createObjectURL(blob);
+          setAudioUrl(url); // Create a URL for the audio file
+        } else {
+          toast.error("❌ No audio data recorded.");
+        }
+      };
+
       mediaRecorderRef.current.start();
       setIsRecording(true);
       setTimer(0);
       startTimer();
+
+      // Automatically stop recording after 20 seconds
+      stopTimeoutRef.current = setTimeout(() => {
+        stopRecording();
+      }, 20000); // 20 seconds
     } catch (error) {
       console.error("Error accessing microphone:", error);
       toast.error(
@@ -46,17 +69,12 @@ const RecordAudio = () => {
   // Stop recording audio and timer
   const stopRecording = () => {
     if (mediaRecorderRef.current) {
-      mediaRecorderRef.current.stop();
-      mediaRecorderRef.current.onstop = () => {
-        const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
-        audioChunksRef.current = []; // Clear previous recording data
-        setAudioBlob(blob);
-
-        const url = URL.createObjectURL(blob);
-        setAudioUrl(url);
-        setIsRecording(false);
-        stopTimer();
-      };
+      mediaRecorderRef.current.stop(); // This triggers the onstop event
+      setIsRecording(false);
+      stopTimer();
+      if (stopTimeoutRef.current) {
+        clearTimeout(stopTimeoutRef.current); // Clear the timeout
+      }
     }
 
     // Stop all tracks to release the microphone
@@ -69,7 +87,13 @@ const RecordAudio = () => {
   // Timer functions
   const startTimer = () => {
     timerRef.current = setInterval(() => {
-      setTimer((prevTime) => prevTime + 1);
+      setTimer((prevTime) => {
+        if (prevTime >= 20) {
+          clearInterval(timerRef.current);
+          return 20; // Stop the timer at 20 seconds
+        }
+        return prevTime + 1;
+      });
     }, 1000);
   };
 
@@ -78,6 +102,7 @@ const RecordAudio = () => {
     timerRef.current = null;
   };
 
+  // Save audio recording
   const saveRecording = async () => {
     if (!audioBlob) return;
 
@@ -104,7 +129,7 @@ const RecordAudio = () => {
         method: "PUT", // Use PUT for uploading to signed URL
         body: audioBlob, // Send the audio file blob directly
         headers: {
-          "Content-Type": "video/webm", // Set content type for .webm files
+          "Content-Type": "audio/wav", // Ensure it's in audio/wav format
         },
       });
 
@@ -181,7 +206,7 @@ const RecordAudio = () => {
 
       {/* Timer Display */}
       <div className="text-2xl font-bold text-gray-700">
-        ⏱️ {formatTime(timer)}
+        ⏱️ {formatTime(timer)} [Max : 20sec]
       </div>
 
       <div className="space-x-2">
