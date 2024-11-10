@@ -88,9 +88,6 @@ const RecordAudio = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          bucketName: "audio-files", // Example bucket name, replace as needed
-        }),
       });
 
       const data = await response.json();
@@ -102,10 +99,10 @@ const RecordAudio = () => {
 
       const { signedUrl, fileName } = data;
 
-      // Step 2: Upload the file to Supabase using the signed URL
+      // Step 2: Upload the file to S3 using the signed URL
       const uploadResponse = await fetch(signedUrl, {
         method: "PUT", // Use PUT for uploading to signed URL
-        body: audioBlob, // Send the audio file blob
+        body: audioBlob, // Send the audio file blob directly
         headers: {
           "Content-Type": "video/webm", // Set content type for .webm files
         },

@@ -2,14 +2,13 @@ import { NextResponse } from "next/server";
 import { supabase } from "../../lib/supabaseClient";
 
 export async function POST(req) {
+  const { patient_id, audio_link } = await req.json();
   if (!patient_id) {
     return NextResponse.json(
       { error: " patient ID is missing" },
       { status: 400 }
     );
   }
-
-  const { patient_id, audio_link } = await req.json();
 
   // Insert metadata into audio_files table
   const { data: uploadedData, error: uploadedError } = await supabase
