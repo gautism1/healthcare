@@ -126,14 +126,37 @@ const PatientsList = () => {
                 key={patient.id}
                 className="flex justify-between items-center p-4 border rounded-lg shadow-sm"
               >
-                <div>
+                <div className="flex flex-col">
                   <h2 className="text-xl font-medium">{patient.name}</h2>
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        router.push(
+                          `/dashboard/patients/${patient.id}/add?name=${patient.name}`
+                        );
+                      }}
+                      className="text-xs text-left my-3 rounded-xl text-blue-500 hover:text-red-700 transition border-2 px-2 py-1"
+                    >
+                      🎙️ Add New Audio
+                    </button>
+                    <button
+                      onClick={() => {
+                        router.push(
+                          `/dashboard/patients/${patient.id}/recordings?name=${patient.name}`
+                        );
+                      }}
+                      className="text-xs text-left my-3 rounded-xl text-blue-500 bg-slate-200  hover:text-red-700 transition border-2 px-2 py-1"
+                    >
+                      🎧 All Recordings
+                    </button>
+                  </div>
                 </div>
                 <button
                   onClick={() => handleDelete(patient.id)}
                   className="text-red-500 hover:text-red-700 transition"
                 >
-                  Delete
+                  ❌
                 </button>
               </li>
             ))}

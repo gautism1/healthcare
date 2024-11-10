@@ -35,6 +35,7 @@ export async function DELETE(req) {
 // app/api/caregivers/route.js (or route.ts if using TypeScript)
 
 export async function GET(req) {
+  await validateCaregiver(req);
   try {
     // Extract caregiver_id from query parameters
     const url = new URL(req.url);

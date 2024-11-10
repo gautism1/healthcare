@@ -8,13 +8,15 @@ export default function Dashboard() {
   const [userData, setUserData] = useState(null);
   const router = useRouter(); // Use router from next/navigation
 
-  const decodedPayload = decodeJWT(localStorage.getItem("jwtToken"));
+  const token = localStorage.getItem("jwtToken");
 
-  if (!decodedPayload) {
+  if (!token) {
     // Redirect to login page if no token
     router.push("/auth/login");
     return;
   }
+
+  const decodedPayload = decodeJWT(token);
 
   return (
     <div className="container mx-auto p-6">
