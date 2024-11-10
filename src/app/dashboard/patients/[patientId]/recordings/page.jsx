@@ -44,17 +44,27 @@ export default function PatientRecordings() {
 
   return (
     <div className="flex flex-col p-4 space-y-4 border border-gray-300 rounded-lg m-4 max-w-xl mx-auto">
+      <button
+        onClick={() => {
+          router.back();
+        }}
+        className="border rounded-xl w-fit px-2 py-1 bg-slate-100"
+      >
+        Back
+      </button>
+
       <h2>Patient Recordings 🎧</h2>
       <h2 className="text-lg font-semibold">Patient Name: {patientName}</h2>
       <div className="text-xs text-slate-500">Patient ID: {patientId}</div>
 
-      <ul>
+      <ul className="flex flex-col gap-2">
         {recordings.length === 0 && (
           <p>No recordings found for this patient 😢</p>
         )}
-
+        Total audio recordings : {recordings.length}
         {recordings.map((recording, index) => (
-          <li key={index}>
+          <li key={index} className="flex items-center gap-2">
+            {index + 1}
             <audio controls>
               <source src={recording.audio_link} type="audio/mpeg" />
               Your browser does not support the audio element.

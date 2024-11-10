@@ -91,7 +91,15 @@ const PatientsList = () => {
   return (
     <div className="min-h-screen bg-gray-100 p-8">
       <div className="max-w-xl mx-auto bg-white rounded-lg shadow-lg p-6">
-        <h1 className="text-2xl font-semibold mb-6">Patients</h1>
+        <button
+          onClick={() => {
+            router.back();
+          }}
+          className="border rounded-xl w-fit px-2 py-1 bg-slate-100"
+        >
+          Back to dashboard
+        </button>
+        <h1 className="text-2xl font-semibold my-6">Patients</h1>
 
         {/* Add Patient Form */}
         <div className="mb-6 border max-w-xl p-2 rounded-xl">

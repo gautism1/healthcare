@@ -83,6 +83,14 @@ const CaregiversList = () => {
   return (
     <div className="min-h-screen bg-gray-100 p-8">
       <div className="max-w-xl mx-auto bg-white rounded-lg shadow-lg p-6">
+        <button
+          onClick={() => {
+            router.back();
+          }}
+          className="border rounded-xl w-fit px-2 py-1 bg-slate-100 my-6"
+        >
+          Back to dashboard
+        </button>
         <h1 className="text-2xl font-semibold mb-6">Caregivers</h1>
 
         {/* Add Caregiver Form */}
@@ -116,10 +124,10 @@ const CaregiversList = () => {
             {caregivers.map((caregiver) => (
               <li
                 key={caregiver.id}
-                className="flex justify-between items-center p-4 border rounded-lg shadow-sm"
+                className="flex justify-between items-center px-2 py-1 shadow-sm"
               >
                 <div>
-                  <h2 className="text-xl font-medium">{caregiver.email}</h2>
+                  <h2 className=" font-medium">{caregiver.email}</h2>
                   <p className="text-sm text-gray-500">{caregiver.role}</p>
                 </div>
                 <button

@@ -168,6 +168,14 @@ const RecordAudio = () => {
 
   return (
     <div className="flex flex-col p-4 space-y-4 border border-gray-300 rounded-lg m-4 max-w-xl mx-auto">
+      <button
+        onClick={() => {
+          router.back();
+        }}
+        className="border rounded-xl w-fit px-2 py-1 bg-slate-100"
+      >
+        Back
+      </button>
       <h2 className="text-lg font-semibold">Patient Name : {patientName}</h2>
       <div className="text-xs text-slate-500">Patient Id : {patientId}</div>
 
