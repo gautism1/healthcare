@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { toast } from "react-hot-toast";
 import { isClient } from "../../lib/utils";
+import { FormattedMessage } from "react-intl";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -59,7 +60,9 @@ const Login = () => {
         onSubmit={handlelogin}
         className="bg-white p-6 rounded-lg shadow-lg w-80 max-w-sm"
       >
-        <h1 className="text-2xl font-bold mb-4 text-center">Login</h1>
+        <h1 className="text-2xl font-bold mb-4 text-center">
+          <FormattedMessage id="login" defaultMessage="Login" />
+        </h1>
 
         {/* Email Input */}
         <div className="mb-4">
@@ -67,7 +70,7 @@ const Login = () => {
             htmlFor="email"
             className="block text-sm font-semibold text-gray-700"
           >
-            Email
+            <FormattedMessage id="email" defaultMessage="Login" />
           </label>
           <input
             type="email"
@@ -86,7 +89,7 @@ const Login = () => {
             htmlFor="password"
             className="block text-sm font-semibold text-gray-700"
           >
-            Password
+            <FormattedMessage id="password" defaultMessage="Password" />
           </label>
           <input
             type="password"

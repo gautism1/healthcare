@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { decodeJWT } from "../lib/utils";
 import toast from "react-hot-toast";
 import { isClient } from "../lib/utils";
+import { FormattedMessage } from "react-intl";
 
 export default function Dashboard() {
   const [userData, setUserData] = useState(null);
@@ -60,7 +61,10 @@ export default function Dashboard() {
 
           <div className="bg-zinc-100 p-4 rounded-xl border mb-6 ">
             <h2 className="text-xl font-semibold text-gray-700">
-              User Details
+              <FormattedMessage
+                id="user_details"
+                defaultMessage="User Details"
+              />
             </h2>
             <div className="text-gray-600 mt-2">
               <div>

@@ -1,4 +1,14 @@
 {
-    "title": "ब्रुकलिन हेल्थकेयर में आपका स्वागत है"
-    
-  }
+  "title": "स्वागत है ब्रुकलिन हेल्थकेयर",
+  "login": "लॉग इन",
+  "register": "रजिस्टर",
+  "caregiver_action": "मरीज जोड़ें और देखें",
+  "admin_action": "देखें और देखभालकर्ताओं को जोड़ें",
+  "user_details": "उपयोगकर्ता विवरण",
+  "add_patient": "नया मरीज जोड़ें",
+  "add_audio": "नया ऑडियो जोड़ें",
+  "view_audio": "सभी रिकॉर्डिंग",
+  "patient_name_heading": "मरीज का नाम",
+  "email": "email dale",
+  "password":"your password"
+}

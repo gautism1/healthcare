@@ -1,4 +1,14 @@
 {
-    "title": "Welcome Brooklyn Healthcare2"
-    
+    "title": "Welcome Brooklyn Healthcare",
+    "login": "Login",
+    "register":"Register",
+    "caregiver_action":"Add & View Patients",
+    "admin_action":"Add & View Caregivers",
+    "user_details":"User Details",
+    "add_patient":"Add New Patient",
+    "add_audio":"Add New Audio",
+    "view_audio":"All recordings",
+    "patient_name_heading":"Patient Name",
+    "email": "Email",
+  "password":"Password"
   }
