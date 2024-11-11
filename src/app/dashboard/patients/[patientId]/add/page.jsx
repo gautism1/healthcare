@@ -12,7 +12,7 @@ const RecordAudio = () => {
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const timerRef = useRef(null);
-  const stopTimeoutRef = useRef(null); // Timeout to stop recording after 20 seconds
+  const stopTimeoutRef = useRef(null);
 
   const { patientId } = useParams();
   const searchParams = useSearchParams();
@@ -29,7 +29,6 @@ const RecordAudio = () => {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaRecorderRef.current = new MediaRecorder(stream);
 
-      // Listen to data being available for recording
       mediaRecorderRef.current.ondataavailable = (event) => {
         if (event.data.size > 0) {
           audioChunksRef.current.push(event.data);
@@ -37,13 +36,12 @@ const RecordAudio = () => {
       };
 
       mediaRecorderRef.current.onstop = () => {
-        // Create a Blob from the collected audio chunks and ensure it's valid
         const blob = new Blob(audioChunksRef.current, { type: "audio/wav" });
-        audioChunksRef.current = []; // Clear previous recording data
+        audioChunksRef.current = [];
         if (blob.size > 0) {
           setAudioBlob(blob);
           const url = URL.createObjectURL(blob);
-          setAudioUrl(url); // Create a URL for the audio file
+          setAudioUrl(url);
         } else {
           toast.error("❌ No audio data recorded.");
         }
@@ -54,10 +52,9 @@ const RecordAudio = () => {
       setTimer(0);
       startTimer();
 
-      // Automatically stop recording after 20 seconds
       stopTimeoutRef.current = setTimeout(() => {
         stopRecording();
-      }, 20000); // 20 seconds
+      }, 20000);
     } catch (error) {
       console.error("Error accessing microphone:", error);
       toast.error(
@@ -69,28 +66,26 @@ const RecordAudio = () => {
   // Stop recording audio and timer
   const stopRecording = () => {
     if (mediaRecorderRef.current) {
-      mediaRecorderRef.current.stop(); // This triggers the onstop event
+      mediaRecorderRef.current.stop();
       setIsRecording(false);
       stopTimer();
       if (stopTimeoutRef.current) {
-        clearTimeout(stopTimeoutRef.current); // Clear the timeout
+        clearTimeout(stopTimeoutRef.current);
       }
     }
 
-    // Stop all tracks to release the microphone
     const stream = mediaRecorderRef.current && mediaRecorderRef.current.stream;
     if (stream) {
       stream.getTracks().forEach((track) => track.stop());
     }
   };
 
-  // Timer functions
   const startTimer = () => {
     timerRef.current = setInterval(() => {
       setTimer((prevTime) => {
         if (prevTime >= 20) {
           clearInterval(timerRef.current);
-          return 20; // Stop the timer at 20 seconds
+          return 20;
         }
         return prevTime + 1;
       });
@@ -102,12 +97,33 @@ const RecordAudio = () => {
     timerRef.current = null;
   };
 
-  // Save audio recording
   const saveRecording = async () => {
     if (!audioBlob) return;
 
+    if (navigator.onLine) {
+      await uploadAudio(); // Upload if online
+    } else {
+      queueAudio(); // Queue if offline
+    }
+  };
+
+  // Queue the audio in localStorage if offline
+  const queueAudio = () => {
+    const queuedRecordings = JSON.parse(localStorage.getItem("queuedRecordings") || "[]");
+
+    queuedRecordings.push({
+      patient_id: patientId,
+      blob: audioBlob,
+      timestamp: Date.now(),
+    });
+
+    localStorage.setItem("queuedRecordings", JSON.stringify(queuedRecordings));
+    toast.success("Audio queued and will be uploaded when online.");
+  };
+
+  // Upload the audio to server
+  const uploadAudio = async () => {
     try {
-      // Step 1: Request a signed URL from the backend for file upload
       const response = await fetch("/api/signed-url", {
         method: "POST",
         headers: {
@@ -124,12 +140,11 @@ const RecordAudio = () => {
 
       const { signedUrl, fileName } = data;
 
-      // Step 2: Upload the file to S3 using the signed URL
       const uploadResponse = await fetch(signedUrl, {
-        method: "PUT", // Use PUT for uploading to signed URL
-        body: audioBlob, // Send the audio file blob directly
+        method: "PUT",
+        body: audioBlob,
         headers: {
-          "Content-Type": "audio/wav", // Ensure it's in audio/wav format
+          "Content-Type": "audio/wav",
         },
       });
 
@@ -138,12 +153,8 @@ const RecordAudio = () => {
         return;
       }
 
-      console.log("File uploaded successfully with filename:", fileName);
+      const audioLink = signedUrl.split("?")[0];
 
-      // Step 3: Get the file URL (without query parameters) from the signed URL
-      const audioLink = signedUrl.split("?")[0]; // Extract the actual file URL
-
-      // Step 4: Save the metadata (patient_id and audio_link) in your database
       const postMetadataResponse = await fetch("/api/audio", {
         method: "POST",
         headers: {
@@ -156,8 +167,8 @@ const RecordAudio = () => {
       });
 
       if (postMetadataResponse.ok) {
-        toast.success("✅ Audio saved successfully for this patient!");
-        setAudioUrl(null); // Reset the audio URL after successful save
+        toast.success("✅ Audio saved successfully!");
+        setAudioUrl(null);
       } else {
         toast.error("❌ Failed to save audio metadata.");
       }
@@ -167,22 +178,42 @@ const RecordAudio = () => {
     }
   };
 
-  // Reset function to clear everything
+  const processQueue = async () => {
+    const queuedRecordings = JSON.parse(localStorage.getItem("queuedRecordings") || "[]");
+  
+    for (const recording of queuedRecordings) {
+      let audioBlob = recording.blob; // Use 'let' to allow reassignment
+      let patientId = recording.patient_id; // Use 'let' to allow reassignment
+      await uploadAudio();
+    }
+  
+    localStorage.removeItem("queuedRecordings");
+    toast.success("Queued audios uploaded successfully.");
+  };
+  
+
+  // Listen for network status changes
+  useEffect(() => {
+    if (navigator.onLine) {
+      processQueue(); // Attempt to upload queued audios when coming online
+    }
+
+    window.addEventListener("online", processQueue);
+    return () => window.removeEventListener("online", processQueue);
+  }, []);
+
   const resetRecording = () => {
-    // Clear the state and stop the recording
     setIsRecording(false);
     setAudioUrl(null);
     setAudioBlob(null);
     setTimer(0);
     stopTimer();
-    // Stop microphone stream
     const stream = mediaRecorderRef.current && mediaRecorderRef.current.stream;
     if (stream) {
       stream.getTracks().forEach((track) => track.stop());
     }
   };
 
-  // Format timer to display as mm:ss
   const formatTime = (time) => {
     const minutes = Math.floor(time / 60)
       .toString()
@@ -204,7 +235,6 @@ const RecordAudio = () => {
       <h2 className="text-lg font-semibold">Patient Name : {patientName}</h2>
       <div className="text-xs text-slate-500">Patient Id : {patientId}</div>
 
-      {/* Timer Display */}
       <div className="text-2xl font-bold text-gray-700">
         ⏱️ {formatTime(timer)} [Max : 20sec]
       </div>
