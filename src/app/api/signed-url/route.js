@@ -3,8 +3,8 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { NextResponse } from "next/server";
 
 export async function POST(req) {
-  const bucketName = process.env.AWS_BUCKET_NAME; // Ensure this bucket exists
-  const region = "ap-south-1"; // Set your S3 region
+  const bucketName = process.env.AWS_BUCKET_NAME;
+  const region = "ap-south-1";
 
   const s3Client = new S3Client({
     region,
@@ -16,13 +16,13 @@ export async function POST(req) {
 
   try {
     // Generate a unique filename using Date.now()
-    const uniqueFileName = `${Date.now()}-file.webm`; // Use timestamp for uniqueness
+    const uniqueFileName = `${Date.now()}-file.webm`; // Ensuring all files are `.webm`
 
     // Create a command for the PUT operation
     const command = new PutObjectCommand({
       Bucket: bucketName,
       Key: uniqueFileName,
-      ContentType: "video/webm", // Set the correct content type
+      ContentType: "audio/webm", // Fixed content type for webm
     });
 
     // Generate the signed URL for uploading the file

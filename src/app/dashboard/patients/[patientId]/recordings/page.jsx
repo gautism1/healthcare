@@ -66,7 +66,7 @@ export default function PatientRecordings() {
           <li key={index} className="flex items-center gap-2">
             {index + 1}
             <audio controls>
-              <source src={recording.audio_link} type="audio/mpeg" />
+              <source src={recording.audio_link} type="audio/webm" />
               Your browser does not support the audio element.
             </audio>
           </li>
