@@ -28,3 +28,5 @@ export const isAdmin = (token) => {
   const decoded = verifyJWT(token);
   return decoded?.role === "admin"; // Check if the decoded JWT has admin role
 };
+
+export const isClient = typeof window !== "undefined";

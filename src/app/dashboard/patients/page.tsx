@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation"; // Use Next.js router for navigation
 import React, { useState, useEffect } from "react";
 import toast from "react-hot-toast";
-import { decodeJWT } from "../../lib/utils";
+import { decodeJWT, isClient } from "../../lib/utils";
 
 const PatientsList = () => {
   const router = useRouter();
@@ -15,7 +15,11 @@ const PatientsList = () => {
 
   // Fetch patients from the API
   const fetchPatients = async () => {
-    const decodedPayload = decodeJWT(localStorage.getItem("jwtToken"));
+    let token = "";
+    if (isClient) {
+      token = localStorage.getItem("jwtToken");
+    }
+    const decodedPayload = decodeJWT(token);
 
     setLoading(true);
     try {

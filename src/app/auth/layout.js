@@ -1,13 +1,18 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { isClient } from "../lib/utils";
 
 export default function Layout({ children }) {
   const [loading, setLoading] = useState(true); // Track loading state
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem("jwtToken");
+    let token = "";
+    if (isClient) {
+      token = localStorage.getItem("jwtToken");
+    }
+
     if (token) {
       // Redirect to dashboard if token exists
       router.push("/dashboard");

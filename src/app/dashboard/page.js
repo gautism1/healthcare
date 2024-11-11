@@ -3,12 +3,16 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { decodeJWT } from "../lib/utils";
 import toast from "react-hot-toast";
+import { isClient } from "../lib/utils";
 
 export default function Dashboard() {
   const [userData, setUserData] = useState(null);
   const router = useRouter(); // Use router from next/navigation
 
-  const token = localStorage.getItem("jwtToken");
+  let token = "";
+  if (isClient) {
+    token = localStorage.getItem("jwtToken");
+  }
 
   if (!token) {
     // Redirect to login page if no token
@@ -29,6 +33,7 @@ export default function Dashboard() {
             className="w-fit text-xs py-2 px-4 bg-red-600 text-white rounded-lg mb-6"
             onClick={() => {
               localStorage.removeItem("jwtToken");
+              localStorage.removeItem("queuedRecordings");
               router.push("/auth/login");
               toast.success("Logged Out Successfully");
             }}
@@ -44,6 +49,7 @@ export default function Dashboard() {
               className="w-fit text-xs py-2 px-4 bg-red-600 text-white rounded-lg mb-6"
               onClick={() => {
                 localStorage.removeItem("jwtToken");
+                localStorage.removeItem("queuedRecordings");
                 router.push("/auth/login");
                 toast.success("Logged Out Successfully");
               }}

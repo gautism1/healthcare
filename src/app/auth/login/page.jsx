@@ -1,7 +1,8 @@
 "use client";
 import React, { useState } from "react";
 import Link from "next/link";
-import { toast } from "react-hot-toast"; // Importing toast for notifications
+import { toast } from "react-hot-toast";
+import { isClient } from "../../lib/utils";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -30,7 +31,11 @@ const Login = () => {
 
       if (res.ok) {
         console.log(">>", data);
-        localStorage.setItem("jwtToken", data.token);
+
+        if (isClient) {
+          localStorage.setItem("jwtToken", data.token);
+        }
+
         // If successful, show success toast and redirect
         toast.success("Successfully signed in!", { id: loginToast });
         setTimeout(function () {
